@@ -11,6 +11,12 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
+[scripts/clean-images.sh]
+indent_style = tab
+binary_next_line = true
+switch_case_indent = true
+space_redirects = true
+
 [*.{yml,yaml}]
 indent_size = 2
 
