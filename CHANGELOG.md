@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Replace the release process
+    - Select the stage and the version with `scripts/release.sh`, which offers the versions the branch allows and preselects the bump the commits need
     - Decide the version, the releases and the moving tags with `scripts/version.sh`, which also reports what a push publishes
 
 ### Removed
