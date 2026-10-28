@@ -11,7 +11,10 @@ use App\Support\PasskeyRelyingParty;
 use App\Support\RootSetupWindow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\RegisterResponse;
 use Laravel\Fortify\Fortify;
 
@@ -72,10 +75,14 @@ class FortifyServiceProvider extends ServiceProvider
                 ),
                 'enabled_oauth_providers' => $enabled_oauth_providers,
                 'passkeys_available' => PasskeyRelyingParty::isAvailable(),
+                'is_cloudflare_turnstile_enabled' => (bool) ($settings->is_cloudflare_turnstile_enabled && filled($settings->cloudflare_turnstile_site_key) && filled($settings->cloudflare_turnstile_secret_key)),
+                'cloudflare_turnstile_site_key' => $settings->cloudflare_turnstile_site_key,
             ]);
         });
 
         Fortify::authenticateUsing(function (Request $request) {
+            $this->assertCloudflareTurnstile($request);
+
             $email = strtolower($request->email);
             $user = User::where('email', $email)->with('teams')->first();
             if (
@@ -121,5 +128,56 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(function () {
             return view('auth.two-factor-challenge');
         });
+    }
+
+    /**
+     * Reject the login when Cloudflare Turnstile is configured and the token does not verify.
+     */
+    private function assertCloudflareTurnstile(Request $request): void
+    {
+        $settings = instanceSettings();
+        if (! $settings->is_cloudflare_turnstile_enabled || blank($settings->cloudflare_turnstile_site_key) || blank($settings->cloudflare_turnstile_secret_key)) {
+            return;
+        }
+
+        $token = $request->input('cf-turnstile-response');
+        if (! is_string($token) || $token === '') {
+            throw ValidationException::withMessages([
+                'email' => 'Please complete the Cloudflare Turnstile challenge.',
+            ]);
+        }
+
+        try {
+            $response = Http::asForm()->timeout(10)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret' => $settings->cloudflare_turnstile_secret_key,
+                'response' => $token,
+                'remoteip' => $request->ip(),
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Cloudflare Turnstile siteverify request failed.', [
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => 'Cloudflare Turnstile could not be verified. Please try again.',
+            ]);
+        }
+
+        if (! $response->successful()) {
+            Log::error('Cloudflare Turnstile siteverify returned an unexpected response.', [
+                'status' => $response->status(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => 'Cloudflare Turnstile could not be verified. Please try again.',
+            ]);
+        }
+
+        if ($response->json('success') !== true) {
+            throw ValidationException::withMessages([
+                'email' => 'Cloudflare Turnstile verification failed. Please try again.',
+            ]);
+        }
     }
 }

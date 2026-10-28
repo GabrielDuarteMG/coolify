@@ -62,6 +62,9 @@ class InstanceSettings extends Model
         'file_download_s3_storage_id',
         'is_dashboard_force_https_enabled',
         'is_passkey_enabled',
+        'is_cloudflare_turnstile_enabled',
+        'cloudflare_turnstile_site_key',
+        'cloudflare_turnstile_secret_key',
     ];
 
     protected $hidden = [
@@ -74,6 +77,7 @@ class InstanceSettings extends Model
         'resend_api_key',
         'domain_connect_private_key',
         'sentinel_token',
+        'cloudflare_turnstile_secret_key',
     ];
 
     protected $casts = [
@@ -105,6 +109,9 @@ class InstanceSettings extends Model
         'webhook_allow_localhost' => 'boolean',
         'is_dashboard_force_https_enabled' => 'boolean',
         'is_passkey_enabled' => 'boolean',
+        'is_cloudflare_turnstile_enabled' => 'boolean',
+        'cloudflare_turnstile_site_key' => 'string',
+        'cloudflare_turnstile_secret_key' => 'encrypted',
         'server_validation_rate_limit_seconds' => 'integer',
         'server_validation_max_failures_per_ip' => 'integer',
         'server_validation_max_failures_per_team' => 'integer',

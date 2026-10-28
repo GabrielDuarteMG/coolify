@@ -19,6 +19,10 @@
                 </x-auth.alert>
             @endif
 
+            @if ($is_cloudflare_turnstile_enabled && ! empty($cloudflare_turnstile_site_key))
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+            @endif
+
             <form action="/login" method="POST" class="flex flex-col gap-4">
                 @csrf
                 @env('local')
@@ -74,6 +78,11 @@
                         </span>
                     @endif
                 </div>
+
+                @if ($is_cloudflare_turnstile_enabled && ! empty($cloudflare_turnstile_site_key))
+                    <div class="cf-turnstile flex justify-center my-2" data-sitekey="{{ $cloudflare_turnstile_site_key }}"
+                        data-theme="auto"></div>
+                @endif
 
                 <x-forms.button class="w-full justify-center" type="submit" isHighlighted>
                     {{ __('auth.login') }}

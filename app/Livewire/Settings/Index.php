@@ -23,6 +23,15 @@ class Index extends Component
     #[Validate('boolean')]
     public bool $is_dashboard_force_https_enabled = true;
 
+    #[Validate('boolean')]
+    public bool $is_cloudflare_turnstile_enabled = false;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $cloudflare_turnstile_site_key = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $cloudflare_turnstile_secret_key = null;
+
     #[Validate('required|integer|min:1025|max:65535')]
     public int $public_port_min;
 
@@ -72,6 +81,9 @@ class Index extends Component
         }
         $this->fqdn = $this->settings->fqdn;
         $this->is_dashboard_force_https_enabled = $this->settings->is_dashboard_force_https_enabled;
+        $this->is_cloudflare_turnstile_enabled = $this->settings->is_cloudflare_turnstile_enabled;
+        $this->cloudflare_turnstile_site_key = $this->settings->cloudflare_turnstile_site_key;
+        $this->cloudflare_turnstile_secret_key = $this->settings->cloudflare_turnstile_secret_key;
         $this->public_port_min = $this->settings->public_port_min;
         $this->public_port_max = $this->settings->public_port_max;
         $this->instance_name = $this->settings->instance_name;
@@ -96,6 +108,13 @@ class Index extends Component
         $this->validate();
         $this->settings->fqdn = $this->fqdn ? trim($this->fqdn) : $this->fqdn;
         $this->settings->is_dashboard_force_https_enabled = $this->is_dashboard_force_https_enabled;
+        $this->settings->is_cloudflare_turnstile_enabled = $this->is_cloudflare_turnstile_enabled;
+        $this->settings->cloudflare_turnstile_site_key = filled($this->cloudflare_turnstile_site_key)
+            ? trim($this->cloudflare_turnstile_site_key)
+            : $this->cloudflare_turnstile_site_key;
+        $this->settings->cloudflare_turnstile_secret_key = filled($this->cloudflare_turnstile_secret_key)
+            ? trim($this->cloudflare_turnstile_secret_key)
+            : $this->cloudflare_turnstile_secret_key;
         $this->settings->public_port_min = $this->public_port_min;
         $this->settings->public_port_max = $this->public_port_max;
         $this->settings->instance_name = $this->instance_name;

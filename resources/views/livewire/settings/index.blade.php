@@ -8,7 +8,7 @@
             {{-- instance_timezone auto-saves via $wire.set + submit; exclude it so
                  the bar does not flash while the snapshot catches up. --}}
             <x-unsaved-bar action="submit"
-                targets="fqdn,instance_name,public_ipv4,public_ipv6,dev_helper_version" />
+                targets="fqdn,instance_name,public_ipv4,public_ipv6,dev_helper_version,is_cloudflare_turnstile_enabled,cloudflare_turnstile_site_key,cloudflare_turnstile_secret_key" />
             <x-application.settings-section title="General">
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div @class([
@@ -63,6 +63,20 @@
                         label="Instance public IPv6"
                         helper="Coolify detects this address on start only when the field is empty. Set it when the detected address is wrong. Detect looks it up again and saves it."
                         placeholder="2001:db8::1" autocomplete="new-password" />
+                </div>
+            </x-application.settings-section>
+
+            <x-application.settings-section title="Cloudflare Turnstile">
+                <div class="flex flex-col gap-4">
+                    <x-forms.checkbox canGate="update" :canResource="$settings" id="is_cloudflare_turnstile_enabled"
+                        label="Enable Cloudflare Turnstile on Login"
+                        helper="Protect the login form against automated bots using Cloudflare Turnstile." />
+                    <x-forms.input canGate="update" :canResource="$settings" id="cloudflare_turnstile_site_key"
+                        label="Site Key" helper="Turnstile site key from Cloudflare dashboard."
+                        placeholder="0x4AAAAAA..." />
+                    <x-forms.input canGate="update" :canResource="$settings" id="cloudflare_turnstile_secret_key"
+                        type="password" label="Secret Key" helper="Turnstile secret key from Cloudflare dashboard."
+                        placeholder="0x4AAAAAA..." />
                 </div>
             </x-application.settings-section>
 
